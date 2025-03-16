@@ -1,24 +1,26 @@
-import { useLingui } from "@lingui/react"
-
-import { Plural, Trans } from "@lingui/react/macro"
-
+import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import LocaleSwitcher from "./LocaleSwitcher"
+
+const userName = "Tim";
 
 export default function Inbox() {
   const messages = [{}, {}]
   const messagesCount = messages.length
   const lastLogin = new Date()
+  const { i18n, t } = useLingui()
   const markAsRead = () => {
-    alert("Marked as read.")
+    alert(t`Marked as read.`)
   }
-  const { i18n } = useLingui()
 
-  return (
+  return (  
     <div>
       <LocaleSwitcher />
       <h1>
         <Trans>Message Inbox</Trans>
       </h1>
+      <p>
+        {t`Hello ${userName}`}
+      </p>
       <p>
         <Trans>
           See all <a href="/unread">unread messages </a>
@@ -34,7 +36,6 @@ export default function Inbox() {
         />
       </p>
       <footer>
-        {" "}
         <Trans>Last login on {i18n.date(lastLogin)}.</Trans>
       </footer>
     </div>
