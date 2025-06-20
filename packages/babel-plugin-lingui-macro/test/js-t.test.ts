@@ -1,4 +1,5 @@
 import { macroTester } from "./macroTester"
+import { makeConfig } from "@lingui/conf"
 
 describe.skip("", () => {})
 
@@ -51,7 +52,7 @@ macroTester({
       name: "Variables with escaped double quotes are correctly formatted",
       code: `
         import { t } from '@lingui/core/macro';
-        t\`Variable \"name\"\`;
+        t\`Variable "name"\`;
     `,
     },
     {
@@ -74,6 +75,39 @@ macroTester({
  anything \${props.messages[index].value()}\
 \`
 `,
+    },
+    {
+      name: "Variables with explicit label",
+      code: `
+        import { t } from '@lingui/core/macro';
+      
+        t\`Variable \${{name: random()}}\`;
+    `,
+    },
+    {
+      name: "Variables with explicit label, shortcut syntax",
+      code: `
+        import { t } from '@lingui/core/macro';
+      
+        t\`Variable \${{name}}\`;
+    `,
+    },
+    {
+      name: "Variables with explicit ph helper",
+      code: `
+        import { t, ph } from '@lingui/core/macro';
+     
+        t\`Variable \${ph({name: random()})}\`;
+    `,
+    },
+    {
+      useTypescriptPreset: true,
+      name: "Variables with `as` type casting",
+      code: `
+        import { t } from '@lingui/core/macro';
+     
+        t\`Variable \${{name} as any}\`;
+    `,
     },
     {
       name: "Newlines are preserved",
@@ -194,7 +228,7 @@ macroTester({
         import { t } from '@lingui/core/macro';
         import { i18n } from './lingui';
         const msg = t(i18n)({
-            message: \`Hello $\{name\}\`,
+            message: \`Hello \${name}\`,
             id: 'msgId',
             comment: 'description for translators',
             context: 'My Context',
@@ -207,7 +241,7 @@ macroTester({
       code: `
         import { t } from '@lingui/core/macro';
         const msg = t({
-            message: \`Hello $\{name\}\`,
+            message: \`Hello \${name}\`,
             id: 'msgId',
             comment: 'description for translators',
             context: 'My Context',
@@ -223,7 +257,7 @@ macroTester({
       code: `
           import { t } from '@lingui/macro';
           const msg = t({
-              message: \`Hello $\{name\}\`,
+              message: \`Hello \${name}\`,
               id: 'msgId',
               comment: 'description for translators',
               context: 'My Context',
@@ -239,7 +273,7 @@ macroTester({
       code: `
         import { t } from '@lingui/core/macro';
         const msg = t({
-            message: \`Hello $\{name\}\`,
+            message: \`Hello \${name}\`,
             id: 'msgId',
             comment: 'description for translators',
             context: 'My Context',
@@ -275,6 +309,41 @@ macroTester({
         import { plural as plural2, t as t2 } from '@lingui/core/macro'
         t1\`Ola!  \${plural2(count, {one: "1 user", many: "# users"})} Ola!\`
         t2\`Ola! \${plural1(count, {one: "1 user", many: "# users"})} Ola!\`
+      `,
+    },
+    {
+      name: "should respect runtimeConfigModule",
+      macroOpts: {
+        linguiConfig: makeConfig(
+          {
+            runtimeConfigModule: {
+              i18n: ["@my/lingui", "myI18n"],
+            },
+          },
+          { skipValidation: true }
+        ),
+      },
+      code: `
+         import { t } from '@lingui/macro'
+         const msg = t\`Message\`
+      `,
+    },
+    {
+      name: "should detects macro imported from config.macro.corePackage",
+      macroOpts: {
+        linguiConfig: makeConfig(
+          {
+            macro: {
+              corePackage: ["@my-lingui/macro"],
+            },
+          },
+          { skipValidation: true }
+        ),
+      },
+      skipBabelMacroTest: true,
+      code: `
+         import { t } from '@my-lingui/macro'
+         const msg = t\`Message\`
       `,
     },
   ],

@@ -3,6 +3,43 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.3.2](https://github.com/lingui/js-lingui/compare/v5.3.1...v5.3.2) (2025-05-27)
+
+**Note:** Version bump only for package @lingui/react
+
+## [5.3.1](https://github.com/lingui/js-lingui/compare/v5.3.0...v5.3.1) (2025-04-14)
+
+**Note:** Version bump only for package @lingui/react
+
+# [5.3.0](https://github.com/lingui/js-lingui/compare/v5.2.0...v5.3.0) (2025-03-21)
+
+**Note:** Version bump only for package @lingui/react
+
+# [5.2.0](https://github.com/lingui/js-lingui/compare/v5.1.2...v5.2.0) (2025-01-31)
+
+### Bug Fixes
+
+* **react:** remove children property from runtime Trans ([#2151](https://github.com/lingui/js-lingui/issues/2151)) ([7540adb](https://github.com/lingui/js-lingui/commit/7540adb0128f9acbff745251540e2d91f3cd683c))
+
+### Features
+
+* add ph() and explicit labels for placeholders ([#2092](https://github.com/lingui/js-lingui/issues/2092)) ([2026c83](https://github.com/lingui/js-lingui/commit/2026c83dfa3b969cde30305d52821e561df996cf))
+* **react:** preserve newlines during string formatting ([#2158](https://github.com/lingui/js-lingui/issues/2158)) ([f0566fb](https://github.com/lingui/js-lingui/commit/f0566fbe56a1e66ebad23c2f205464972902e683))
+
+## [5.1.2](https://github.com/lingui/js-lingui/compare/v5.1.1...v5.1.2) (2024-12-16)
+
+**Note:** Version bump only for package @lingui/react
+
+## [5.1.1](https://github.com/lingui/js-lingui/compare/v5.1.0...v5.1.1) (2024-12-16)
+
+**Note:** Version bump only for package @lingui/react
+
+# [5.1.0](https://github.com/lingui/js-lingui/compare/v5.0.0...v5.1.0) (2024-12-06)
+
+### Features
+
+- **react:** add support for React 19 ([#2111](https://github.com/lingui/js-lingui/issues/2111)) ([e93b73d](https://github.com/lingui/js-lingui/commit/e93b73d075165d91fa598fa0c579a8ceb5c86845))
+
 ## [4.14.1](https://github.com/lingui/js-lingui/compare/v4.14.0...v4.14.1) (2024-11-28)
 
 **Note:** Version bump only for package @lingui/react

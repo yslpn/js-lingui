@@ -1,5 +1,6 @@
 // use package path instead relative because we want
 // to test it in from /dist folder in integration tests
+// eslint-disable-next-line import/no-extraneous-dependencies
 import linguiMacroPlugin, {
   LinguiPluginOpts,
 } from "@lingui/babel-plugin-lingui-macro"
@@ -32,6 +33,10 @@ type TestCaseCommon = {
   macroOpts?: LinguiPluginOpts
   only?: boolean
   skip?: boolean
+  /**
+   * Will not execute test using babel-macro-plugin
+   */
+  skipBabelMacroTest?: boolean
 }
 
 export type MacroTesterOptions = {
@@ -96,13 +101,15 @@ export function macroTester(opts: MacroTesterOptions) {
             getDefaultBabelOptions("plugin", macroOpts, useTypescriptPreset)
           ).code.trim()
 
-          const actualMacro = transformSync(
-            testCase.code,
-            getDefaultBabelOptions("macro", macroOpts, useTypescriptPreset)
-          ).code.trim()
+          if (!testCase.skipBabelMacroTest) {
+            const actualMacro = transformSync(
+              testCase.code,
+              getDefaultBabelOptions("macro", macroOpts, useTypescriptPreset)
+            ).code.trim()
 
-          // output from plugin transformation should be the same to macro transformation
-          expect(actualPlugin).toBe(actualMacro)
+            // output from plugin transformation should be the same to macro transformation
+            expect(actualPlugin).toBe(actualMacro)
+          }
 
           if (testCase.expected) {
             expect(clean(actualPlugin)).toEqual(clean(testCase.expected))

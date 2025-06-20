@@ -1,4 +1,4 @@
-import React, { ComponentType } from "react"
+import React, { ComponentType, ReactNode } from "react"
 
 import { formatElements } from "./format"
 import type { MessageOptions } from "@lingui/core"
@@ -30,7 +30,6 @@ export type TransProps = {
   components?: { [key: string]: React.ElementType | any }
   formats?: MessageOptions["formats"]
   comment?: string
-  children?: React.ReactNode
 } & TransRenderCallbackOrComponent
 
 /**
@@ -82,7 +81,7 @@ export function TransNoContext(
       }
 
       // react components, arrays, falsy values, all should be processed as JSX children
-      components[index] = <>{values[key]}</>
+      components[index] = <>{values[key] as ReactNode}</>
       values[key] = `<${index}/>`
     })
   }

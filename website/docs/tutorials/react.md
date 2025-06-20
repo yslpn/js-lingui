@@ -398,7 +398,7 @@ Dates (as well as numbers) are formatted differently in different languages, but
 The `i18n` object can be accessed with the [`useLingui`](/ref/react#uselingui) hook:
 
 ```jsx title="src/Inbox.js" {4,9}
-import { useLingui } from "@lingui/react";
+import { useLingui, Trans } from "@lingui/react/macro";
 
 export default function Inbox() {
   const { i18n } = useLingui();
@@ -643,6 +643,10 @@ export default function ImageWithCaption() {
 }
 ```
 
+:::
+
+:::caution
+All Core Macros cannot be used at the module level. They must be used within a component or function. See the [Macros](/ref/macro#using-macros) documentation for more information.
 :::
 
 ## Review

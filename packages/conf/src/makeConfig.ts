@@ -20,6 +20,10 @@ export function makeConfig(
   let config: LinguiConfig = {
     ...defaultConfig,
     ...userConfig,
+    macro: {
+      ...defaultConfig.macro,
+      ...userConfig.macro,
+    },
   }
 
   if (!opts.skipValidation) {
@@ -27,11 +31,9 @@ export function makeConfig(
     validateLocales(config)
   }
 
-  config = pipe(
-    // List config migrations from oldest to newest
-    setCldrParentLocales,
-    normalizeRuntimeConfigModule
-  )(config)
+  // List config migrations from oldest to newest
+  config = setCldrParentLocales(config)
+  config = normalizeRuntimeConfigModule(config) as any
 
   // `replaceRootDir` should always be the last
   return replaceRootDir(
@@ -68,6 +70,10 @@ export const defaultConfig: LinguiConfig = {
   pseudoLocale: "",
   rootDir: ".",
   runtimeConfigModule: ["@lingui/core", "i18n"],
+  macro: {
+    corePackage: ["@lingui/macro", "@lingui/core/macro"],
+    jsxPackage: ["@lingui/macro", "@lingui/react/macro"],
+  },
   sourceLocale: "",
   service: { name: "", apiKey: "" },
 }
@@ -90,7 +96,6 @@ export const exampleConfig = {
     flow: false,
     tsExperimentalDecorators: false,
   },
-
   experimental: {
     extractor: {
       entries: [],
@@ -120,8 +125,3 @@ function validateLocales(config: LinguiConfig) {
     )
   }
 }
-
-const pipe =
-  (...functions: Array<Function>) =>
-  (args: any): any =>
-    functions.reduce((arg, fn) => fn(arg), args)

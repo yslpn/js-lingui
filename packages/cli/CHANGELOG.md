@@ -3,6 +3,43 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.3.2](https://github.com/lingui/js-lingui/compare/v5.3.1...v5.3.2) (2025-05-27)
+
+### Bug Fixes
+
+* **cli:** catalogsMergePath generates only one compiled locale ([#2238](https://github.com/lingui/js-lingui/issues/2238)) ([b1c7aac](https://github.com/lingui/js-lingui/commit/b1c7aac019d2066a8b8801ab72214f48aa5a97ef))
+* use makePathRegexSafe with globSync ([#2242](https://github.com/lingui/js-lingui/issues/2242)) ([7a8256c](https://github.com/lingui/js-lingui/commit/7a8256c7b8699b73d1181f6f34bfe3734e9996ac))
+
+## [5.3.1](https://github.com/lingui/js-lingui/compare/v5.3.0...v5.3.1) (2025-04-14)
+
+### Bug Fixes
+
+* **cli:** update esbuild ([#2187](https://github.com/lingui/js-lingui/issues/2187)) ([643a604](https://github.com/lingui/js-lingui/commit/643a604991f1a420a5b196b074f0396f89b90ad3))
+
+# [5.3.0](https://github.com/lingui/js-lingui/compare/v5.2.0...v5.3.0) (2025-03-21)
+
+### Features
+
+* `failOnMissing` & `failOnCompileError` for loaders + compiler ([#2198](https://github.com/lingui/js-lingui/issues/2198)) ([68c29ab](https://github.com/lingui/js-lingui/commit/68c29abf23974d8bffb6cadaacafc88e4760d3cb))
+
+# [5.2.0](https://github.com/lingui/js-lingui/compare/v5.1.2...v5.2.0) (2025-01-31)
+
+### Bug Fixes
+
+* Allow empty translations for pseudo locale in compile --strict ([#2129](https://github.com/lingui/js-lingui/issues/2129)) ([8cae5e0](https://github.com/lingui/js-lingui/commit/8cae5e0e5a4ab0ab9406aa1683b60a4796c2d9f2))
+
+## [5.1.2](https://github.com/lingui/js-lingui/compare/v5.1.1...v5.1.2) (2024-12-16)
+
+**Note:** Version bump only for package @lingui/cli
+
+## [5.1.1](https://github.com/lingui/js-lingui/compare/v5.1.0...v5.1.1) (2024-12-16)
+
+**Note:** Version bump only for package @lingui/cli
+
+# [5.1.0](https://github.com/lingui/js-lingui/compare/v5.0.0...v5.1.0) (2024-12-06)
+
+**Note:** Version bump only for package @lingui/cli
+
 ## [4.14.1](https://github.com/lingui/js-lingui/compare/v4.14.0...v4.14.1) (2024-11-28)
 
 ### Bug Fixes

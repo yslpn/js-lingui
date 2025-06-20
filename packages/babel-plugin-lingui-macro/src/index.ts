@@ -1,26 +1,37 @@
-import type { PluginObj, Visitor, PluginPass, BabelFile } from "@babel/core"
+import type { PluginObj, Visitor, PluginPass } from "@babel/core"
 import type * as babelTypes from "@babel/types"
 import { Program, Identifier } from "@babel/types"
 import { MacroJSX } from "./macroJsx"
-import { NodePath } from "@babel/traverse"
+import type { NodePath } from "@babel/traverse"
 import { MacroJs } from "./macroJs"
-import {
-  MACRO_CORE_PACKAGE,
-  MACRO_REACT_PACKAGE,
-  MACRO_LEGACY_PACKAGE,
-  JsMacroName,
-} from "./constants"
+import { JsMacroName } from "./constants"
 import {
   type LinguiConfigNormalized,
   getConfig as loadConfig,
+  LinguiConfig,
 } from "@lingui/conf"
 
 let config: LinguiConfigNormalized
 
 export type LinguiPluginOpts = {
-  // explicitly set by CLI when running extraction process
+  /*
+   * When set `true` all auxiliary data such as `comment`, `context`,
+   * and default message would be kept regardless of the current environment
+   *
+   * This flag explicitly set by Lingui CLI when running extraction process
+   */
   extract?: boolean
+  /**
+   * Setting `stripMessageField` to `true` will strip messages and comments from both development and production bundles.
+   * Alternatively, set it to `false` to keep the original messages in both environments.
+   *
+   * If not set value would be determined based on `process.env.NODE_ENV === "production"`
+   */
   stripMessageField?: boolean
+
+  /**
+   * Resolved and normalized Lingui Configuration
+   */
   linguiConfig?: LinguiConfigNormalized
 }
 
@@ -61,27 +72,44 @@ type LinguiSymbol = "Trans" | "useLingui" | "i18n"
 const getIdentifierPath = ((path: NodePath, node: Identifier) => {
   let foundPath: NodePath
 
-  path.traverse({
-    Identifier: (path) => {
-      if (path.node === node) {
-        foundPath = path
-        path.stop()
-      }
+  path.traverse(
+    {
+      Identifier: (path) => {
+        if (path.node === node) {
+          foundPath = path
+          path.stop()
+        }
+      },
     },
-  })
+    path.state
+  )
 
   return foundPath
 }) as any
+
+type MacroImports = {
+  corePackage: Set<NodePath<babelTypes.ImportDeclaration>>
+  jsxPackage: Set<NodePath<babelTypes.ImportDeclaration>>
+  all: Set<NodePath<babelTypes.ImportDeclaration>>
+}
+
+const LinguiSymbolToImportMap = {
+  Trans: "jsxPackage",
+  useLingui: "jsxPackage",
+  i18n: "corePackage",
+} satisfies Record<LinguiSymbol, keyof LinguiConfig["macro"]>
 
 export default function ({
   types: t,
 }: {
   types: typeof babelTypes
 }): PluginObj {
-  function addImport(state: PluginPass, name: LinguiSymbol) {
-    const path = state.get(
-      "macroImport"
-    ) as NodePath<babelTypes.ImportDeclaration>
+  function addImport(
+    macroImports: MacroImports,
+    state: PluginPass,
+    name: LinguiSymbol
+  ) {
+    const [path] = macroImports[LinguiSymbolToImportMap[name]]
 
     const config = state.get("linguiConfig") as LinguiConfigNormalized
 
@@ -89,17 +117,19 @@ export default function ({
       state.set("has_import_" + name, true)
       const [moduleSource, importName] = config.runtimeConfigModule[name]
 
-      const [newPath] = path.insertAfter(
-        t.importDeclaration(
-          [
-            t.importSpecifier(
-              getSymbolIdentifier(state, name),
-              t.identifier(importName)
-            ),
-          ],
-          t.stringLiteral(moduleSource)
-        )
+      const importDecl = t.importDeclaration(
+        [
+          t.importSpecifier(
+            getSymbolIdentifier(state, name),
+            t.identifier(importName)
+          ),
+        ],
+        t.stringLiteral(moduleSource)
       )
+
+      importDecl.loc = path.node.loc
+
+      const [newPath] = path.insertAfter(importDecl)
 
       path.parentPath.scope.registerDeclaration(newPath)
     }
@@ -109,17 +139,34 @@ export default function ({
     )
   }
 
-  function getMacroImports(path: NodePath<Program>) {
-    return path.get("body").filter((statement) => {
-      return (
-        statement.isImportDeclaration() &&
-        [
-          MACRO_CORE_PACKAGE,
-          MACRO_REACT_PACKAGE,
-          MACRO_LEGACY_PACKAGE,
-        ].includes(statement.get("source").node.value)
-      )
-    })
+  function getMacroImports(path: NodePath<Program>): MacroImports {
+    const corePackage = new Set(
+      path
+        .get("body")
+        .filter(
+          (statement) =>
+            statement.isImportDeclaration() &&
+            config.macro.corePackage.includes(
+              statement.get("source").node.value
+            )
+        ) as NodePath<babelTypes.ImportDeclaration>[]
+    )
+
+    const jsxPackage = new Set(
+      path
+        .get("body")
+        .filter(
+          (statement) =>
+            statement.isImportDeclaration() &&
+            config.macro.jsxPackage.includes(statement.get("source").node.value)
+        ) as NodePath<babelTypes.ImportDeclaration>[]
+    )
+
+    return {
+      corePackage,
+      jsxPackage,
+      all: new Set([...corePackage, ...jsxPackage]),
+    }
   }
 
   function getSymbolIdentifier(
@@ -138,11 +185,9 @@ export default function ({
 
     if (macro === JsMacroName.useLingui) {
       if (
-        identPath.referencesImport(
-          MACRO_REACT_PACKAGE,
-          JsMacroName.useLingui
-        ) ||
-        identPath.referencesImport(MACRO_LEGACY_PACKAGE, JsMacroName.useLingui)
+        config.macro.jsxPackage.some((moduleSource) =>
+          identPath.referencesImport(moduleSource, JsMacroName.useLingui)
+        )
       ) {
         return true
       }
@@ -151,8 +196,9 @@ export default function ({
       identPath = identPath || getIdentifierPath(path.getFunctionParent(), node)
 
       if (
-        identPath.referencesImport(MACRO_CORE_PACKAGE, macro) ||
-        identPath.referencesImport(MACRO_LEGACY_PACKAGE, macro)
+        config.macro.corePackage.some((moduleSource) =>
+          identPath.referencesImport(moduleSource, macro)
+        )
       ) {
         return true
       }
@@ -161,30 +207,25 @@ export default function ({
   }
   return {
     name: "lingui-macro-plugin",
-    pre(file: BabelFile) {
-      file.hub
-    },
     visitor: {
       Program: {
         enter(path, state) {
-          const macroImports = getMacroImports(path)
-
-          if (!macroImports.length) {
-            return
-          }
-
-          state.set("macroImport", macroImports[0])
-
           state.set(
             "linguiConfig",
             getConfig((state.opts as LinguiPluginOpts).linguiConfig)
           )
 
+          const macroImports = getMacroImports(path)
+
+          if (!macroImports.all.size) {
+            return
+          }
+
           state.set("linguiIdentifiers", {
             i18n: path.scope.generateUidIdentifier("i18n"),
             Trans: path.scope.generateUidIdentifier("Trans"),
             useLingui: path.scope.generateUidIdentifier("useLingui"),
-          })
+          } satisfies Record<LinguiSymbol, babelTypes.Identifier>)
 
           path.traverse(
             {
@@ -199,6 +240,8 @@ export default function ({
                     stripMessageProp: shouldStripMessageProp(
                       state.opts as LinguiPluginOpts
                     ),
+                    isLinguiIdentifier: (node: Identifier, macro) =>
+                      isLinguiIdentifier(path, node, macro),
                   }
                 )
 
@@ -212,7 +255,7 @@ export default function ({
 
                 if (newNode) {
                   const [newPath] = path.replaceWith(newNode)
-                  addImport(state, "Trans").reference(newPath)
+                  addImport(macroImports, state, "Trans").reference(newPath)
                 }
               },
 
@@ -249,11 +292,13 @@ export default function ({
                   const [newPath] = path.replaceWith(newNode)
 
                   if (macro.needsUseLinguiImport) {
-                    addImport(state, "useLingui").reference(newPath)
+                    addImport(macroImports, state, "useLingui").reference(
+                      newPath
+                    )
                   }
 
                   if (macro.needsI18nImport) {
-                    addImport(state, "i18n").reference(newPath)
+                    addImport(macroImports, state, "i18n").reference(newPath)
                   }
                 }
               },
@@ -263,7 +308,7 @@ export default function ({
         },
         exit(path, state) {
           const macroImports = getMacroImports(path)
-          macroImports.forEach((path) => path.remove())
+          macroImports.all.forEach((path) => path.remove())
         },
       },
     } as Visitor<PluginPass>,

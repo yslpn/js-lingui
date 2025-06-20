@@ -1,4 +1,5 @@
 import { macroTester } from "./macroTester"
+describe.skip("", () => {})
 
 macroTester({
   cases: [
@@ -71,7 +72,7 @@ macroTester({
       code: `
         import { defineMessage } from '@lingui/core/macro';
         const msg = defineMessage({
-            message: \`Hello $\{name\}\`,
+            message: \`Hello \${name}\`,
             comment: 'description for translators',
             context: 'My Context',
         })
@@ -83,7 +84,7 @@ macroTester({
       code: `
         import { defineMessage } from '@lingui/core/macro';
         const msg = defineMessage({
-            message: \`Hello $\{name\}\`,
+            message: \`Hello \${name}\`,
             id: 'msgId',
             comment: 'description for translators',
             context: 'My Context',
@@ -95,7 +96,7 @@ macroTester({
       code: `
         import { defineMessage, t } from '@lingui/core/macro';
         const message = defineMessage({
-          message: t\`Hello $\{name\}\`
+          message: t\`Hello \${name}\`
         })
     `,
     },

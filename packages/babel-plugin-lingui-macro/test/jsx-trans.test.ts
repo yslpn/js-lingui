@@ -1,4 +1,5 @@
 import { macroTester } from "./macroTester"
+import { makeConfig } from "@lingui/conf"
 describe.skip("", () => {})
 
 macroTester({
@@ -63,6 +64,30 @@ macroTester({
       code: `
         import { Trans } from '@lingui/react/macro';
         <Trans>Hi {yourName}, my name is {myName}</Trans>;
+      `,
+    },
+    {
+      name: "Labeled expressions are supported",
+      code: `
+        import { Trans } from '@lingui/react/macro';
+        <Trans>Hi {{name: getUserName()}}, my name is {{myName: getMyName()}}</Trans>;
+      `,
+    },
+    {
+      name: "Labeled expressions with ph helper",
+      code: `
+        import { Trans } from '@lingui/react/macro';
+        import { ph } from '@lingui/core/macro';
+        <Trans>Hi {ph({name: getUserName()})}, my name is {ph({myName: getMyName()})}</Trans>;
+      `,
+    },
+    {
+      useTypescriptPreset: true,
+      name: "Labeled expressions with `as` expression",
+      code: `
+        import { Trans } from '@lingui/react/macro';
+        import { ph } from '@lingui/core/macro';
+        <Trans>Hi {{name: getUserName()} as any}, my name is {{myName: getMyName()} as any}</Trans>;
       `,
     },
     {
@@ -291,6 +316,41 @@ macroTester({
         import { Trans } from "@lingui/react/macro";
         type X = typeof Trans;
         const cmp = <Trans>Hello</Trans>
+      `,
+    },
+    {
+      name: "should respect runtimeConfigModule",
+      macroOpts: {
+        linguiConfig: makeConfig(
+          {
+            runtimeConfigModule: {
+              Trans: ["@my/lingui", "myTrans"],
+            },
+          },
+          { skipValidation: true }
+        ),
+      },
+      code: `
+        import { Trans } from '@lingui/react/macro';
+        <Trans>Hello World</Trans>;
+      `,
+    },
+    {
+      name: "should detects macro imported from config.macro.jsxPackage",
+      macroOpts: {
+        linguiConfig: makeConfig(
+          {
+            macro: {
+              jsxPackage: ["@my-lingui/macro"],
+            },
+          },
+          { skipValidation: true }
+        ),
+      },
+      skipBabelMacroTest: true,
+      code: `
+        import { Trans } from '@my-lingui/macro';
+        <Trans>Hello World</Trans>;
       `,
     },
   ],

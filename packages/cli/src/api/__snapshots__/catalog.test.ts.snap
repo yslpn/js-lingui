@@ -2,8 +2,37 @@
 
 exports[`Catalog POT Flow Should get translations from template if locale file not presented 1`] = `
 {
-  2ZeN02: Test String,
-  mY42CM: Hello World,
+  messages: {
+    2ZeN02: Test String,
+    mY42CM: Hello World,
+  },
+  missing: [
+    {
+      id: mY42CM,
+      source: Hello World,
+    },
+    {
+      id: 2ZeN02,
+      source: Test String,
+    },
+  ],
+}
+`;
+
+exports[`Catalog collect should extract files with special characters in the include path 1`] = `
+{
+  Component D: {
+    comments: [],
+    context: undefined,
+    message: undefined,
+    origin: [
+      [
+        collect/[componentD]/index.js,
+        1,
+      ],
+    ],
+    placeholders: {},
+  },
 }
 `;
 

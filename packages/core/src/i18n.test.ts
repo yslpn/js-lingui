@@ -215,7 +215,7 @@ describe("I18n", () => {
         id: "My name is {name}",
         message: "Je m'appelle {name}",
       })
-    ).toEqual("Je m'appelle")
+    ).toEqual("Je m'appelle ")
 
     // Untranslated message
     expect(i18n._("Missing message")).toEqual("Missing message")
@@ -261,6 +261,23 @@ describe("I18n", () => {
         message: "Mi ''nombre'' es '{name}'",
       })
     ).toEqual("Mi 'nombre' es {name}")
+  })
+
+  it("._ should not trim whitespaces in translated messages", () => {
+    const messages = {}
+
+    const i18n = setupI18n({
+      locale: "es",
+      messages: { es: messages },
+    })
+
+    expect(
+      i18n._({
+        id: "msg",
+        /* note the space at the end */
+        message: " Hello ",
+      })
+    ).toEqual(" Hello ")
   })
 
   it("._ shouldn't compile uncompiled messages in production", () => {
@@ -430,5 +447,205 @@ describe("I18n", () => {
     })
     expect(i18n._("Software development")).toEqual("Software­entwicklung")
     expect(i18n._("Software development")).toEqual("Software­entwicklung")
+  })
+
+  it("._ should throw a meaningful error when locale is not set", () => {
+    const i18n = setupI18n({})
+    expect(() =>
+      i18n._(
+        "Text {0, plural, offset:1 =0 {No books} =1 {1 book} other {# books}}"
+      )
+    ).toThrowErrorMatchingInlineSnapshot(`
+      "Lingui: Attempted to call a translation function without setting a locale.
+      Make sure to call \`i18n.activate(locale)\` before using Lingui functions.
+      This issue may also occur due to a race condition in your initialization logic."
+    `)
+  })
+
+  describe("ICU date format", () => {
+    const i18n = setupI18n({
+      locale: "fr",
+      messages: { fr: {} },
+    })
+
+    const date = new Date("2014-12-06")
+
+    it("style short", () => {
+      expect(
+        i18n._("It starts on {someDate, date, short}", {
+          someDate: date,
+        })
+      ).toMatchInlineSnapshot(`"It starts on 06/12/2014"`)
+    })
+
+    it("style full", () => {
+      expect(
+        i18n._("It starts on {someDate, date, full}", {
+          someDate: date,
+        })
+      ).toMatchInlineSnapshot(`"It starts on samedi 6 décembre 2014"`)
+    })
+
+    it("style long", () => {
+      expect(
+        i18n._("It starts on {someDate, date, long}", {
+          someDate: date,
+        })
+      ).toMatchInlineSnapshot(`"It starts on 6 décembre 2014"`)
+    })
+
+    it("style default", () => {
+      expect(
+        i18n._("It starts on {someDate, date, default}", {
+          someDate: date,
+        })
+      ).toMatchInlineSnapshot(`"It starts on 6 déc. 2014"`)
+    })
+
+    it("no style", () => {
+      expect(
+        i18n._("It starts on {someDate, date}", {
+          someDate: date,
+        })
+      ).toMatchInlineSnapshot(`"It starts on 6 déc. 2014"`)
+    })
+
+    it("using custom style", () => {
+      expect(
+        i18n._(
+          "It starts on {someDate, date, myStyle}",
+          {
+            someDate: date,
+          },
+          {
+            formats: {
+              myStyle: {
+                day: "numeric",
+              },
+            },
+          }
+        )
+      ).toMatchInlineSnapshot(`"It starts on 6"`)
+    })
+
+    it("using date skeleton", () => {
+      expect(
+        i18n._("It starts on {someDate, date, ::GrMMMdd}", {
+          someDate: date,
+        })
+      ).toMatchInlineSnapshot(`"It starts on 06 déc. 2014 ap. J.-C."`)
+    })
+
+    it("should respect locale", () => {
+      const i18n = setupI18n({
+        locale: "fr",
+        messages: { fr: {}, pl: {} },
+      })
+
+      const msg = "It starts on {someDate, date, long}"
+
+      expect(
+        i18n._(msg, {
+          someDate: date,
+        })
+      ).toMatchInlineSnapshot(`"It starts on 6 décembre 2014"`)
+
+      i18n.activate("pl")
+
+      expect(
+        i18n._(msg, {
+          someDate: date,
+        })
+      ).toMatchInlineSnapshot(`"It starts on 6 grudnia 2014"`)
+    })
+  })
+  describe("ICU time format", () => {
+    const i18n = setupI18n({
+      locale: "fr",
+      messages: { fr: {} },
+    })
+
+    const date = new Date("2014-12-06::17:40 UTC")
+
+    it("style short", () => {
+      expect(
+        i18n._("It starts on {someDate, time, short}", {
+          someDate: date,
+        })
+      ).toMatchInlineSnapshot(`"It starts on 17:40"`)
+    })
+
+    it("style full", () => {
+      expect(
+        i18n._("It starts on {someDate, time, full}", {
+          someDate: date,
+        })
+      ).toMatchInlineSnapshot(`"It starts on 17:40:00 UTC"`)
+    })
+
+    it("style long", () => {
+      expect(
+        i18n._("It starts on {someDate, time, long}", {
+          someDate: date,
+        })
+      ).toMatchInlineSnapshot(`"It starts on 17:40:00 UTC"`)
+    })
+
+    it("style default", () => {
+      expect(
+        i18n._("It starts on {someDate, time, default}", {
+          someDate: date,
+        })
+      ).toMatchInlineSnapshot(`"It starts on 17:40:00"`)
+    })
+
+    it("no style", () => {
+      expect(
+        i18n._("It starts on {someDate, time}", {
+          someDate: date,
+        })
+      ).toMatchInlineSnapshot(`"It starts on 17:40:00"`)
+    })
+
+    it("using custom style", () => {
+      expect(
+        i18n._(
+          "It starts on {someDate, time, myStyle}",
+          {
+            someDate: date,
+          },
+          {
+            formats: {
+              myStyle: {
+                hour: "numeric",
+              },
+            },
+          }
+        )
+      ).toMatchInlineSnapshot(`"It starts on 17 h"`)
+    })
+
+    it("should respect locale", () => {
+      const i18n = setupI18n({
+        locale: "fr",
+        messages: { fr: {}, "en-US": {} },
+      })
+
+      const msg = "It starts on {someDate, time, long}"
+
+      expect(
+        i18n._(msg, {
+          someDate: date,
+        })
+      ).toMatchInlineSnapshot(`"It starts on 17:40:00 UTC"`)
+
+      i18n.activate("en-US")
+
+      expect(
+        i18n._(msg, {
+          someDate: date,
+        })
+      ).toMatchInlineSnapshot(`"It starts on 5:40:00 PM UTC"`)
+    })
   })
 })

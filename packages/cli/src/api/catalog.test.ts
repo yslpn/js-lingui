@@ -318,6 +318,21 @@ describe("Catalog", () => {
       expect(messages).toMatchSnapshot()
     })
 
+    it("should extract files with special characters in the include path", async () => {
+      const catalog = new Catalog(
+        {
+          name: "messages",
+          path: "locales/{locale}",
+          include: [fixture("collect/[componentD]")],
+          exclude: [],
+          format,
+        },
+        mockConfig()
+      )
+      const messages = await catalog.collect()
+      expect(messages).toMatchSnapshot()
+    })
+
     it("should throw an error when duplicate identifier with different defaults found", async () => {
       const catalog = new Catalog(
         {
@@ -528,7 +543,7 @@ describe("order", () => {
       }),
     }
 
-    const orderedCatalogs = order("messageId")(catalog)
+    const orderedCatalogs = order("messageId", catalog)
 
     // Test that the message content is the same as before
     expect(orderedCatalogs).toMatchSnapshot()
@@ -560,7 +575,7 @@ describe("order", () => {
       }),
     }
 
-    const orderedCatalogs = order("origin")(catalog)
+    const orderedCatalogs = order("origin", catalog)
 
     // Test that the message content is the same as before
     expect(orderedCatalogs).toMatchSnapshot()
@@ -596,7 +611,7 @@ describe("order", () => {
       }),
     }
 
-    const orderedCatalogs = order("message")(catalog)
+    const orderedCatalogs = order("message", catalog)
 
     // Jest snapshot order the keys automatically, so test that the key order explicitly
     expect(Object.keys(orderedCatalogs)).toMatchInlineSnapshot(`
@@ -638,11 +653,11 @@ describe("writeCompiled", () => {
   ])(
     "Should save namespace $namespace in $extension extension",
     async ({ namespace, extension }) => {
-      const compiledCatalog = createCompiledCatalog("en", {}, { namespace })
+      const { source } = createCompiledCatalog("en", {}, { namespace })
       // Test that the file extension of the compiled catalog is `.mjs`
-      expect(
-        await catalog.writeCompiled("en", compiledCatalog, namespace)
-      ).toMatch(extension)
+      expect(await catalog.writeCompiled("en", source, namespace)).toMatch(
+        extension
+      )
     }
   )
 })
