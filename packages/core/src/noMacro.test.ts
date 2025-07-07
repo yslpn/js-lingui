@@ -85,6 +85,62 @@ describe("noMacro", () => {
       const result = tNoMacro`Hello ${{ name: getName() }}`
       expect(result).toBe("Hello John")
     })
+
+    it("should work with message descriptor syntax", () => {
+      const name = "John"
+      const result = tNoMacro({
+        message: "Hello {name}",
+        values: { name },
+      })
+      expect(result).toBe("Hello John")
+    })
+
+    it("should work with message descriptor with custom id", () => {
+      const name = "Alice"
+      const result = tNoMacro({
+        id: "custom.greeting",
+        message: "Hello {name}",
+        values: { name },
+      })
+      expect(result).toBe("Hello Alice")
+    })
+
+    it("should work with message descriptor with context", () => {
+      const result = tNoMacro({
+        message: "Save",
+        context: "button",
+      })
+      expect(result).toBe("Save")
+    })
+
+    it("should work with message descriptor with comment", () => {
+      const result = tNoMacro({
+        message: "Hello world",
+        comment: "Greeting message",
+      })
+      expect(result).toBe("Hello world")
+    })
+
+    it("should throw error for invalid descriptor arguments", () => {
+      expect(() => tNoMacro(null as any)).toThrow(
+        "tNoMacro requires either a template literal or an object with a 'message' property"
+      )
+      expect(() => tNoMacro(undefined as any)).toThrow(
+        "tNoMacro requires either a template literal or an object with a 'message' property"
+      )
+      expect(() => tNoMacro("string" as any)).toThrow(
+        "tNoMacro requires either a template literal or an object with a 'message' property"
+      )
+      expect(() => tNoMacro(42 as any)).toThrow(
+        "tNoMacro requires either a template literal or an object with a 'message' property"
+      )
+      expect(() => tNoMacro({} as any)).toThrow(
+        "tNoMacro requires either a template literal or an object with a 'message' property"
+      )
+      expect(() => tNoMacro({ id: "test" } as any)).toThrow(
+        "tNoMacro requires either a template literal or an object with a 'message' property"
+      )
+    })
   })
 
   describe("msgNoMacro", () => {

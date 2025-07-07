@@ -32,6 +32,62 @@ type SelectOrdinalOptions = {
   [key: `=${number}`]: string
 }
 
+function validateDescriptor(arg: unknown): arg is {
+  id?: string
+  message: string
+  comment?: string
+  context?: string
+  values?: Record<string, unknown>
+} {
+  return (
+    typeof arg === "object" &&
+    arg !== null &&
+    !Array.isArray(arg) &&
+    "message" in arg
+  )
+}
+
+function processDescriptor(descriptor: {
+  id?: string
+  message: string
+  comment?: string
+  context?: string
+  values?: Record<string, unknown>
+}): {
+  message: string
+  id: string
+  values?: Record<string, unknown>
+  comment?: string
+} {
+  const message = descriptor.message
+  const providedId = descriptor.id
+  const context = descriptor.context
+  const messageValues = descriptor.values
+  const comment = descriptor.comment
+
+  const id =
+    (typeof providedId === "string" ? providedId : undefined) ||
+    generateMessageId(
+      message,
+      typeof context === "string" ? context : undefined
+    )
+
+  const validatedValues =
+    messageValues &&
+    typeof messageValues === "object" &&
+    !Array.isArray(messageValues) &&
+    messageValues.constructor === Object
+      ? (messageValues as Record<string, unknown>)
+      : undefined
+
+  return {
+    message,
+    id,
+    values: validatedValues,
+    comment: typeof comment === "string" ? comment : undefined,
+  }
+}
+
 function validateAndExtractSingleKeyValue(
   value: Record<string, unknown>,
   functionName: string,
@@ -218,10 +274,60 @@ function parseTemplateValues(
 export function tNoMacro(
   strings: TemplateStringsArray,
   ...values: TemplateValues
+): string
+
+/**
+ * Translates a message descriptor without macros
+ *
+ * Usage:
+ * tNoMacro({ message: "Hello", values: { name } })
+ * tNoMacro({ id: "custom.id", message: "Hello {name}", values: { name } })
+ *
+ * @param descriptor - Message descriptor to translate
+ * @returns Translated string
+ */
+export function tNoMacro(descriptor: {
+  id?: string
+  message: string
+  comment?: string
+  context?: string
+  values?: Record<string, unknown>
+}): string
+
+export function tNoMacro(
+  arg:
+    | TemplateStringsArray
+    | {
+        id?: string
+        message: string
+        comment?: string
+        context?: string
+        values?: Record<string, unknown>
+      },
+  ...values: TemplateValues
 ): string {
-  const { message, extractedValues } = parseTemplateValues(strings, values)
-  const messageDescriptor = createMessageDescriptor(message, extractedValues)
-  return i18n._(messageDescriptor)
+  if (Array.isArray(arg) && typeof arg[0] === "string") {
+    const { message, extractedValues } = parseTemplateValues(arg, values)
+    const messageDescriptor = createMessageDescriptor(message, extractedValues)
+    return i18n._(messageDescriptor)
+  }
+
+  if (validateDescriptor(arg)) {
+    const { message, id, values, comment } = processDescriptor(arg)
+
+    const messageDescriptor = createMessageDescriptor(
+      message,
+      values,
+      id,
+      comment
+    )
+
+    return i18n._(messageDescriptor)
+  } else {
+    throw new Error(
+      "tNoMacro requires either a template literal or an object with a 'message' property"
+    )
+  }
 }
 
 /**
@@ -266,40 +372,10 @@ export function defineMessageNoMacro(
     return createMessageDescriptor(message, extractedValues)
   }
 
-  if (
-    typeof arg === "object" &&
-    arg !== null &&
-    !Array.isArray(arg) &&
-    "message" in arg
-  ) {
-    const descriptor = arg
-    const message = descriptor.message
-    const providedId = descriptor.id
-    const context = descriptor.context
-    const messageValues = descriptor.values
-    const comment = descriptor.comment
+  if (validateDescriptor(arg)) {
+    const { message, id, values, comment } = processDescriptor(arg)
 
-    const id =
-      (typeof providedId === "string" ? providedId : undefined) ||
-      generateMessageId(
-        message,
-        typeof context === "string" ? context : undefined
-      )
-
-    const validatedValues =
-      messageValues &&
-      typeof messageValues === "object" &&
-      !Array.isArray(messageValues) &&
-      messageValues.constructor === Object
-        ? (messageValues as Record<string, unknown>)
-        : undefined
-
-    return createMessageDescriptor(
-      message,
-      validatedValues,
-      id,
-      typeof comment === "string" ? comment : undefined
-    )
+    return createMessageDescriptor(message, values, id, comment)
   } else {
     throw new Error(
       "defineMessageNoMacro requires either a template literal or an object with a 'message' property"
