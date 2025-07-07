@@ -36,29 +36,27 @@ describe("noMacro", () => {
     })
 
     it("should generate correct IDs internally (verified via catalog)", () => {
-      // Load specific translations to verify that correct IDs are being generated
       i18n.loadAndActivate({
         locale: "en",
         messages: {
-          OVaF9k: "Bonjour {name}", // Translation for "Hello {name}"
-          zHdIA5: "Salut {firstName} {lastName}", // Translation for "Hello {firstName} {lastName}"
-          "1nGWAC": "Bonjour le monde", // Translation for "Hello world"
+          OVaF9k: "Bonjour {name}",
+          zHdIA5: "Salut {firstName} {lastName}",
+          "1nGWAC": "Bonjour le monde",
         },
       })
 
       const name = "Marie"
       const result1 = tNoMacro`Hello ${{ name }}`
-      expect(result1).toBe("Bonjour Marie") // Uses translated template
+      expect(result1).toBe("Bonjour Marie")
 
       const firstName = "Jean"
       const lastName = "Dupont"
       const result2 = tNoMacro`Hello ${{ firstName }} ${{ lastName }}`
-      expect(result2).toBe("Salut Jean Dupont") // Uses translated template
+      expect(result2).toBe("Salut Jean Dupont")
 
       const result3 = tNoMacro`Hello world`
-      expect(result3).toBe("Bonjour le monde") // Uses translated template
+      expect(result3).toBe("Bonjour le monde")
 
-      // Reset to original state
       i18n.loadAndActivate({
         locale: "en",
         messages: {},
@@ -148,12 +146,11 @@ describe("noMacro", () => {
       const name = "John"
       const result = msgNoMacro`Hello ${{ name }}`
       expect(result).toEqual({
-        id: "OVaF9k", // Generated ID for "Hello {name}"
+        id: "OVaF9k",
         message: "Hello {name}",
         values: { name: "John" },
       })
 
-      // Test that it can be used with i18n._
       expect(i18n._(result)).toBe("Hello John")
     })
 
@@ -169,7 +166,7 @@ describe("noMacro", () => {
       })
 
       expect(result).toEqual({
-        id: "test.msg", // Explicit ID provided
+        id: "test.msg",
         message: "Test {value}",
         values: { value: "works" },
       })
@@ -191,7 +188,6 @@ describe("noMacro", () => {
         values: { name: "John" },
       })
 
-      // Test that it can be used with i18n._
       expect(i18n._(result)).toBe("Hello John")
     })
 
@@ -200,12 +196,11 @@ describe("noMacro", () => {
         message: "Hello world",
       })
       expect(result).toEqual({
-        id: "1nGWAC", // Generated ID for "Hello world"
+        id: "1nGWAC",
         message: "Hello world",
         values: undefined,
       })
 
-      // Test that it can be used with i18n._
       expect(i18n._(result)).toBe("Hello world")
     })
 
@@ -219,8 +214,8 @@ describe("noMacro", () => {
         message: "Save",
       })
 
-      expect(resultWithContext.id).toBe("z6v0vJ") // ID with context "button"
-      expect(resultWithoutContext.id).toBe("tfDRzk") // ID without context
+      expect(resultWithContext.id).toBe("z6v0vJ")
+      expect(resultWithoutContext.id).toBe("tfDRzk")
       expect(resultWithContext.id).not.toBe(resultWithoutContext.id)
     })
 
@@ -230,12 +225,11 @@ describe("noMacro", () => {
         context: "button",
       })
       expect(result).toEqual({
-        id: "z6v0vJ", // Generated ID for "Save" with context "button"
+        id: "z6v0vJ",
         message: "Save",
         values: undefined,
       })
 
-      // Test that it can be used with i18n._
       expect(i18n._(result)).toBe("Save")
     })
 
@@ -245,13 +239,12 @@ describe("noMacro", () => {
         comment: "Greeting message",
       })
       expect(result).toEqual({
-        id: "1nGWAC", // Generated ID for "Hello world" (comment doesn't affect ID)
+        id: "1nGWAC",
         message: "Hello world",
         comment: "Greeting message",
         values: undefined,
       })
 
-      // Test that it can be used with i18n._
       expect(i18n._(result)).toBe("Hello world")
     })
 
@@ -259,17 +252,17 @@ describe("noMacro", () => {
       const name = "Alice"
       const result = defineMessageNoMacro`Hello ${{ name }}`
       expect(result).toEqual({
-        id: "OVaF9k", // Generated ID for "Hello {name}"
+        id: "OVaF9k",
         message: "Hello {name}",
         values: { name: "Alice" },
       })
-      // Test that it can be used with i18n._
+
       expect(i18n._(result)).toBe("Hello Alice")
 
       const newResult = defineMessageNoMacro`Hello`
 
       expect(newResult).toEqual({
-        id: "uzTaYi", // Generated ID for "Hello"
+        id: "uzTaYi",
         message: "Hello",
         values: {},
       })
@@ -446,10 +439,8 @@ describe("noMacro", () => {
     it("should only accept object notation for regular variables", () => {
       const name = "John"
 
-      // Should work with object notation
       expect(tNoMacro`Hello ${{ name }}`).toBe("Hello John")
 
-      // Should throw error with positional notation
       expect(() => {
         return tNoMacro`Hello ${name}`
       }).toThrow("noMacro functions only support object notation")
@@ -458,7 +449,6 @@ describe("noMacro", () => {
     it("should only accept object notation for ICU functions", () => {
       const count = 5
 
-      // Should work with object notation in template
       expect(
         tNoMacro`You have ${{
           books: pluralNoMacro(
@@ -471,7 +461,6 @@ describe("noMacro", () => {
         }}`
       ).toBe("You have 5 books")
 
-      // Should throw error for ICU function parameters without object notation
       expect(() => {
         return tNoMacro`You have ${{
           books: (pluralNoMacro as any)(count, {
@@ -481,7 +470,6 @@ describe("noMacro", () => {
         }}`
       }).toThrow("pluralNoMacro requires object notation")
 
-      // Should throw error for ICU function result without object notation in template
       expect(() => {
         return tNoMacro`You have ${pluralNoMacro(
           { count },
