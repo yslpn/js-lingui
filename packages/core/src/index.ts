@@ -12,8 +12,17 @@ export type {
 } from "./i18n"
 
 // Default i18n object
-import { setupI18n } from "./i18n"
-export const i18n = setupI18n()
+export { i18n } from "./globalI18n"
 
 import * as formats from "./formats"
 export { formats }
+
+// No macro versions
+export {
+  tNoMacro,
+  msgNoMacro,
+  defineMessageNoMacro,
+  pluralNoMacro,
+  selectNoMacro,
+  selectOrdinalNoMacro,
+} from "./noMacro"

@@ -94,6 +94,11 @@
       "import": "{ i18n }",
       "limit": "2.25 kB"
     },
+        {
+      "path": "./packages/core/dist/index.mjs",
+      "import": "{ tNoMacro }",
+      "limit": "6 kB"
+    },
     {
       "path": "./packages/detect-locale/dist/index.mjs",
       "limit": "1 kB"
