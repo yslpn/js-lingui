@@ -4,7 +4,7 @@ import mockFs from "mock-fs"
 import { mockConsole } from "@lingui/jest-mocks"
 import { LinguiConfig, makeConfig } from "@lingui/conf"
 
-import { Catalog, cleanObsolete, order } from "./catalog"
+import { Catalog, cleanObsolete, order, writeCompiled } from "./catalog"
 import { createCompiledCatalog } from "./compile"
 
 import {
@@ -191,6 +191,39 @@ describe("Catalog", () => {
       )
 
       expect(messages).toMatchSnapshot()
+    })
+
+    it("should sort placeholders to keep them stable between runs", async () => {
+      const runA = await extractFromFiles(
+        [
+          fixture("collect-placeholders-sorting/a.ts"),
+          fixture("collect-placeholders-sorting/b.ts"),
+        ],
+        mockConfig()
+      )
+
+      const runB = await extractFromFiles(
+        [
+          fixture("collect-placeholders-sorting/b.ts"),
+          fixture("collect-placeholders-sorting/a.ts"),
+        ],
+        mockConfig()
+      )
+
+      expect(Object.values(runA)[0].placeholders[0]).toStrictEqual(
+        Object.values(runB)[0].placeholders[0]
+      )
+
+      expect(Object.values(runA)[0].placeholders).toMatchInlineSnapshot(`
+        {
+          0: [
+            getUser(),
+            getWorld(),
+          ],
+        }
+      `)
+
+      // expect(messages).toMatchSnapshot()
     })
 
     it("should support experimental typescript decorators under a flag", async () => {
@@ -655,9 +688,9 @@ describe("writeCompiled", () => {
     async ({ namespace, extension }) => {
       const { source } = createCompiledCatalog("en", {}, { namespace })
       // Test that the file extension of the compiled catalog is `.mjs`
-      expect(await catalog.writeCompiled("en", source, namespace)).toMatch(
-        extension
-      )
+      expect(
+        await writeCompiled(catalog.path, "en", source, namespace)
+      ).toMatch(extension)
     }
   )
 })
