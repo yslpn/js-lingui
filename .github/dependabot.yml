@@ -4,6 +4,8 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 3
     groups:
       github-actions:
         patterns:
@@ -17,6 +19,8 @@ updates:
       - "/packages/*"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 3
     exclude-paths:
       - "test/**"
       - "examples/**"
@@ -38,6 +42,8 @@ updates:
     directory: "/website"
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 3
     ignore:
       - dependency-name: "*"
         update-types:
