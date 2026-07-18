@@ -112,6 +112,38 @@ describe("@lingui/react/server", () => {
     expect(getI18n()).toBeNull()
   })
 
+  it("stores and reads the i18n instance during an active RSC render", async () => {
+    vi.doMock("react", async (importOriginal) => {
+      const actual = await importOriginal<typeof import("react")>()
+      return {
+        ...actual,
+        default: {
+          ...actual,
+          cache: (fn: (...args: unknown[]) => unknown) => {
+            let value: unknown
+            let called = false
+            return (...args: unknown[]) => {
+              if (!called) {
+                value = fn(...args)
+                called = true
+              }
+              return value
+            }
+          },
+        },
+      }
+    })
+
+    const { getI18n, setI18n } = await import("./server")
+    const i18n = setupI18n({ locale: "en" })
+
+    expect(getI18n()).toBeNull()
+    setI18n(i18n)
+    expect(getI18n()?.i18n).toBe(i18n)
+
+    vi.doUnmock("react")
+  })
+
   it("isolates i18n instances in concurrent Server Functions", async () => {
     const { getI18n, runWithI18n } = await import("./server")
     let pending = 2
