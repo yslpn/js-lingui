@@ -70,7 +70,8 @@
   },
   "dependencies": {
     "@lingui/babel-plugin-lingui-macro": "workspace:*",
-    "@lingui/core": "workspace:*"
+    "@lingui/core": "workspace:*",
+    "use-sync-external-store": "^1.6.0"
   },
   "devDependencies": {
     "@lingui/test-utils": "workspace:*",
@@ -78,6 +79,7 @@
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@types/use-sync-external-store": "^1.5.0",
     "eslint": "^9.39.3",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
