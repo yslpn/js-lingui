@@ -5,7 +5,7 @@
  * RSC uses static analysis to find any non-valid function calls in the import graph.
  * That means this entry point and its children must not have any Provider/Context calls.
  */
-import type { I18nContext, I18nDefaultComponent } from "./I18nProvider"
+import type { I18nContext } from "./I18nProvider"
 
 export type { I18nContext } from "./I18nProvider"
 
